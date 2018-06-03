@@ -184,23 +184,9 @@ CREATE TABLE WicketType (
 );
 
 IF  NOT EXISTS (SELECT * FROM sys.objects 
-WHERE object_id = OBJECT_ID(N'[dbo].[TotalScore]') AND type in (N'U'))
-CREATE TABLE TotalScore(
-  TotalScoreId int  NOT NULL PRIMARY KEY,
-  TotalRuns int NOT NULL,
-  TotalOvers int NOT NULL,
-  TotalBalls int NOT NULL,
-  TotalWikets int NOT NULL,
-  ExtraRuns int NOT NULL,   
-  DtCreated DATETIME NOT NULL,    
-  DtUpdated DATETIME NOT NULL,
-  IsActive  BIT NOT NULL
-);
-
-IF  NOT EXISTS (SELECT * FROM sys.objects 
 WHERE object_id = OBJECT_ID(N'[dbo].[Innings]') AND type in (N'U'))
 CREATE TABLE Innings (
-    InningsId int NOT NULL PRIMARY KEY,
+    InningsId int NOT NULL PRIMARY KEY IDENTITY(1,1),
     [Name]  VARCHAR(50) NOT NULL,
     MatchId int NOT NULL,
     BattingTeamId int NOT NULL FOREIGN KEY REFERENCES TEAM(TeamId),
@@ -214,26 +200,42 @@ CREATE TABLE Innings (
     IsActive  BIT NOT NULL
 );
 
+
 IF  NOT EXISTS (SELECT * FROM sys.objects 
-WHERE object_id = OBJECT_ID(N'[dbo].[UpdatePerBall]') AND type in (N'U'))
-CREATE TABLE [dbo].UpdatePerBall (
-    UpdatePerBallId int NOT NULL IDENTITY(1,1) PRIMARY KEY,
+WHERE object_id = OBJECT_ID(N'[dbo].[TotalScore]') AND type in (N'U'))
+CREATE TABLE TotalScore(
+  TotalScoreId int  NOT NULL PRIMARY KEY IDENTITY(1,1),
+  InningsId int NOT NULL FOREIGN KEY REFERENCES Innings(InningsId),
+  TotalRuns int NOT NULL,
+  TotalOvers int NOT NULL,
+  TotalBalls int NOT NULL,
+  TotalWikets int NOT NULL,
+  ExtraRuns int NOT NULL,   
+  DtCreated DATETIME NOT NULL,    
+  DtUpdated DATETIME NOT NULL,
+  IsActive  BIT NOT NULL
+);
+
+IF  NOT EXISTS (SELECT * FROM sys.objects 
+WHERE object_id = OBJECT_ID(N'[dbo].[PerBallUpdate]') AND type in (N'U'))
+CREATE TABLE [dbo].PerBallUpdate (
+    PerBallUpdateId int NOT NULL IDENTITY(1,1) PRIMARY KEY,
+    InningsId int NOT NULL FOREIGN KEY REFERENCES Innings(InningsId),
     RunScored INT NOT NULL,
-    RunType INT NOT NULL,
-    BallType INT NOT NULL,
+    RunType INT NOT NULL FOREIGN KEY  REFERENCES RunType(RunTypeId),
+    BallType INT NOT NULL FOREIGN KEY  REFERENCES BallType(BallTypeId),
     WiketFallen BIT NOT NULL,
-    WicketType BIT NOT NULL, 
+    WicketType INT NOT NULL FOREIGN  KEY  REFERENCES WicketType(WicketTypeId), 
     DtCreated DATETIME NOT NULL,    
     DtUpdated DATETIME NOT NULL,
     IsActive  BIT NOT NULL
 );
 
-
 IF  NOT EXISTS (SELECT * FROM sys.objects 
 WHERE object_id = OBJECT_ID(N'[dbo].[WicketDetail]') AND type in (N'U'))
 CREATE TABLE [dbo].WicketDetail (
     WicketDetailId int NOT NULL IDENTITY(1,1) PRIMARY KEY,
-    UpdatePerBallId int NOT NULL  FOREIGN KEY REFERENCES UpdatePerBall(UpdatePerBallId),
+    UpdatePerBallId int NOT NULL  FOREIGN KEY REFERENCES PerBallUpdate(PerBallUpdateId),
     WicketType BIT NOT NULL,
     Details VARCHAR(50),
     WicketOwnerId int FOREIGN KEY REFERENCES Player(PlayerId),  
